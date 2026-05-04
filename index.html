@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Ayam Sederhana</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial;
+        }
+
+        .game {
+            width: 600px;
+            height: 200px;
+            margin: auto;
+            position: relative;
+            overflow: hidden;
+            background-color: #87CEEB; /* Biru langit */
+            border-bottom: 5px solid #2E7D32; /* Garis bawah hijau gelap untuk tanah */
+        }
+
+        .game.senja {
+            background: linear-gradient(180deg, #FFA726 0%, #FF7043 60%, #8E24AA 100%);
+            border-bottom-color: #6A1B9A;
+        }
+
+        .game.malam {
+            background: linear-gradient(180deg, #0D1B2A 0%, #1B263B 60%, #415A77 100%);
+            border-bottom-color: #12183A;
+        }
+
+        #pauseBtn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 20;
+            padding: 8px 14px;
+            font-size: 14px;
+            background-color: rgba(255,255,255,0.95);
+            border: 1px solid #999;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        #pauseBtn:hover {
+            background-color: #f0f0f0;
+        }
+
+        #pauseMenu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 30;
+        }
+
+        #pauseMenuContent {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 12px;
+            text-align: center;
+            color: #333;
+        }
+
+        #resumeBtn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        #resumeBtn:hover {
+            background-color: #45a049;
+        }
+
+        .sun {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+            background-image: url("mthr.png");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .game.senja .sun {
+            width: 80px;
+            height: 40px;
+            top: 15px;
+            left: auto;
+            right: 20px;
+            transform: none;
+            border-radius: 80px 80px 0 0;
+            background-image: url("mthr.png");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .game.malam .sun {
+            display: none;
+        }
+
+        #score {
+            font-size: 20px;
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .dino {
+            width: 50px;
+            height: 50px;
+            position: absolute;
+            bottom: 0;
+            left: 50px;
+            background-image: url("ayam.png");
+            background-size: cover;
+            background-position: center;
+        }
+
+        .jump {
+            animation: jump 0.5s linear;
+        }
+
+        @keyframes jump {
+            0% { bottom: 0; }
+            50% { bottom: 100px; }
+            100% { bottom: 0; }
+        }
+
+        .tree {
+            width: 40px;
+            height: 60px;
+            position: absolute;
+            bottom: 0;
+            left: 600px;
+            animation: treeMove 2s linear infinite;
+        }
+
+        .tree::before {
+            content: "🌳";
+            font-size: 50px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes treeMove {
+            0% { left: 600px; }
+            100% { left: -40px; }
+        }
+
+        .cloud {
+            position: absolute;
+            font-size: 40px;
+            animation: cloudMove 8s linear infinite;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .cloud::before {
+            content: "☁️";
+            display: block;
+        }
+
+        .cloud1 {
+            top: 30px;
+            right: -100px;
+            animation-duration: 12s;
+        }
+
+        .cloud2 {
+            top: 60px;
+            right: -170px;
+            animation-duration: 15s;
+        }
+
+        .cloud3 {
+            top: 40px;
+            right: -220px;
+            animation-duration: 10s;
+        }
+
+        .cloud4 {
+            top: 80px;
+            right: -90px;
+            animation-duration: 14s;
+        }
+
+        .cloud5 {
+            top: 55px;
+            right: -250px;
+            animation-duration: 11s;
+        }
+
+        @keyframes cloudMove {
+            0% { right: -80px; }
+            100% { right: 650px; }
+        }
+
+        .game.malam .cloud {
+            display: none;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: red;
+            font-weight: bold;
+            display: none;
+            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        #restartBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #restartBtn:hover {
+            background-color: #45a049;
+        }
+
+        #startScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background: url("fl.jpg") center/cover no-repeat;
+            z-index: 50;
+        }
+
+        #startScreen h1 {
+            color: #fff;
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        #startBtn {
+            margin-top: 10px;
+            padding: 14px 28px;
+            font-size: 20px;
+            border: none;
+            border-radius: 12px;
+            background-color: #fff;
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        #startBtn:hover {
+            background-color: #f3f3f3;
+        }
+
+        #exitBtn {
+            padding: 8px 14px;
+            font-size: 14px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 20;
+            border: 1px solid #999;
+            border-radius: 6px;
+            background-color: rgba(255,255,255,0.95);
+            cursor: pointer;
+        }
+
+        #exitBtn:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+<h2>🐔 Game Ayam Sederhana</h2>
+<p>Tekan SPASI untuk lompat</p>
+<div id="score">Score: 0</div>
+
+<div id="startScreen">
+    <h1>Game Ayam Sederhana</h1>
+    <button id="startBtn">Mulai</button>
+</div>
+
+<div class="game">
+    <button id="pauseBtn">Pause</button>
+    <button id="exitBtn">Exit</button>
+    <div id="pauseMenu">
+        <div id="pauseMenuContent">
+            <div style="font-size: 24px; font-weight: bold;">Paused</div>
+            <button id="resumeBtn">Resume</button>
+        </div>
+    </div>
+    <div class="sun"></div>
+    <div class="dino" id="dino"></div>
+    <div class="tree" id="tree"></div>
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+    <div class="cloud cloud3"></div>
+    <div class="cloud cloud4"></div>
+    <div class="cloud cloud5"></div>
+    <div id="gameOver">
+        <div id="gameOverText">Game Over</div>
+        <button id="restartBtn">Restart</button>
+    </div>
+</div>
+
+<script>
+    const dino = document.getElementById("dino");
+    const tree = document.getElementById("tree");
+    const scoreDisplay = document.getElementById("score");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const pauseMenu = document.getElementById("pauseMenu");
+    const resumeBtn = document.getElementById("resumeBtn");
+    const startScreen = document.getElementById("startScreen");
+    const startBtn = document.getElementById("startBtn");
+    const exitBtn = document.getElementById("exitBtn");
+    const gameOverOverlay = document.getElementById("gameOver");
+    const gameOverText = document.getElementById("gameOverText");
+    const clouds = document.querySelectorAll(".cloud");
+
+    let score = 0;
+    let scoredThisPass = false;
+    let finished = false;
+    let paused = false;
+    let started = false;
+    let isAlive = null;
+    const normalTreeSpeed = 2;
+    const fastTreeSpeed10 = 1.8;
+    const fastTreeSpeed20 = 1.4;
+
+    function updateScore() {
+        scoreDisplay.textContent = "Score: " + score;
+        adjustTreeSpeed();
+    }
+
+    function setPaused(state) {
+        if (finished || !started) return;
+        paused = state;
+        pauseMenu.style.display = state ? "flex" : "none";
+        pauseBtn.style.display = state ? "none" : "block";
+        const playState = state ? "paused" : "running";
+        tree.style.animationPlayState = playState;
+        clouds.forEach(cloud => cloud.style.animationPlayState = playState);
+        dino.style.animationPlayState = playState;
+    }
+
+    function adjustTreeSpeed() {
+        const gameContainer = document.querySelector('.game');
+        if (score >= 30) {
+            finishGame();
+        } else if (score >= 20) {
+            tree.style.animationDuration = fastTreeSpeed20 + "s";
+            gameContainer.classList.add('malam');
+            gameContainer.classList.remove('senja');
+        } else if (score >= 10) {
+            tree.style.animationDuration = fastTreeSpeed10 + "s";
+            gameContainer.classList.add('senja');
+            gameContainer.classList.remove('malam');
+        } else {
+            tree.style.animationDuration = normalTreeSpeed + "s";
+            gameContainer.classList.remove('senja');
+            gameContainer.classList.remove('malam');
+        }
+    }
+
+    function startGameLoop() {
+        if (isAlive) {
+            clearInterval(isAlive);
+        }
+        isAlive = setInterval(function() {
+            if (!started || paused || finished) return;
+
+            let dinoBottom = parseInt(window.getComputedStyle(dino).getPropertyValue("bottom"));
+            let treeLeft = parseInt(window.getComputedStyle(tree).getPropertyValue("left"));
+
+            if (treeLeft < 50 && !scoredThisPass) {
+                score++;
+                updateScore();
+                scoredThisPass = true;
+            }
+
+            if (treeLeft > 550) {
+                scoredThisPass = false;
+            }
+
+            if (!finished && treeLeft < 100 && treeLeft > 50 && dinoBottom < 40) {
+                finished = true;
+                gameOverText.textContent = "Game Over";
+                gameOverOverlay.style.display = "block";
+                tree.style.animation = "none";
+                clouds.forEach(cloud => cloud.style.animationPlayState = "paused");
+                clearInterval(isAlive);
+            }
+        }, 10);
+    }
+
+    function resetGame() {
+        score = 0;
+        scoredThisPass = false;
+        finished = false;
+        paused = false;
+        scoreDisplay.textContent = "Score: 0";
+        gameOverOverlay.style.display = "none";
+        tree.style.animation = "treeMove 2s linear infinite";
+        tree.style.left = "600px";
+        const gameContainer = document.querySelector('.game');
+        gameContainer.classList.remove('senja', 'malam');
+        clouds.forEach(cloud => {
+            cloud.style.display = "block";
+            cloud.style.animationPlayState = "running";
+        });
+        pauseBtn.style.display = "block";
+        pauseMenu.style.display = "none";
+        startGameLoop();
+    }
+
+    function startGame() {
+        started = true;
+        startScreen.style.display = "none";
+        resetGame();
+    }
+
+    function restartGame() {
+        if (!started) return;
+        finished = false;
+        paused = false;
+        score = 0;
+        scoredThisPass = false;
+        gameOverOverlay.style.display = "none";
+        gameOverText.textContent = "Game Over";
+        tree.style.animation = "treeMove 2s linear infinite";
+        tree.style.left = "600px";
+        pauseBtn.style.display = "block";
+        pauseMenu.style.display = "none";
+        tree.style.animationPlayState = "running";
+        clouds.forEach(cloud => cloud.style.animationPlayState = "running");
+        dino.style.animationPlayState = "running";
+        updateScore();
+        startGameLoop();
+    }
+
+    function exitToMain() {
+        started = false;
+        finished = true;
+        paused = false;
+        clearInterval(isAlive);
+        startScreen.style.display = "flex";
+        gameOverOverlay.style.display = "none";
+        tree.style.animation = "none";
+        clouds.forEach(cloud => cloud.style.animationPlayState = "paused");
+    }
+
+    function jump() {
+        if (!started || paused || finished || dino.classList.contains("jump")) return;
+        dino.classList.add("jump");
+        setTimeout(() => {
+            dino.classList.remove("jump");
+        }, 500);
+    }
+
+    document.addEventListener("keydown", function(event) {
+        if (event.code === "Space") {
+            jump();
+        }
+        if (event.code === "Enter" && gameOverOverlay.style.display === "block") {
+            restartGame();
+        }
+    });
+
+    pauseBtn.addEventListener("click", function() {
+        setPaused(true);
+    });
+
+    resumeBtn.addEventListener("click", function() {
+        setPaused(false);
+    });
+
+    startBtn.addEventListener("click", function() {
+        startGame();
+    });
+
+    exitBtn.addEventListener("click", function() {
+        exitToMain();
+    });
+
+    document.getElementById("restartBtn").addEventListener("click", function() {
+        restartGame();
+    });
+</script>
+
+</body>
+</html>
